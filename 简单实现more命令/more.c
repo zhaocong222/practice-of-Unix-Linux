@@ -41,8 +41,13 @@ void do_more(FILE *fp)
     int num_of_lines = 0;
     int see_more(),reply;
         
+    /*
+     * 直到取不到值位置
+     * 每次取一行，最多读取LEN-1字符
+     */
     while (fgets(line,LINELEN,fp)){
         
+        //如果已经读取了 PAGELEN 行
         if (num_of_lines == PAGELEN){ //最多显示PAGELEN行
             reply = see_more();
             
@@ -53,7 +58,7 @@ void do_more(FILE *fp)
             num_of_lines -= reply;
         }
         
-        //标准输出
+        //通过标准输出流 输出
         if (fputs(line,stdout) == EOF){
             exit(1);
         }

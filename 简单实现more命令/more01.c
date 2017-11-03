@@ -1,95 +1,95 @@
-#include <stdio.h>
-#include <stdlib.h>
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+#include<stdio.h>
+#include<stdlib.h>
+#define PAGELEN 5
+#define LINELEN 512
 
-//每次显示10页
-#define PAGELEN 10
-//最大字节
-#define LEN 512
-
+//实现基础功能，显示每一页固定24行文本，“q Enter”退出， “Enter” 下一行， “space Enter”下一页。
 void do_more(FILE *);
-int see_more();
+int see_more(FILE *);
 
-int main(int ac,char *av[])
-{
-    //FILE类型指针fp
+int main (int ac, char *av[])
+{    
     FILE *fp;
-
-    //如果只有1个参数，从标准输入流中读取
-    //否则从文件读取
-    if (ac == 1)
-        do_more(stdin); 
-    else
+    
+    if ( ac == 1)
+        do_more(stdin); //如果没有第2个参数 从标准输入获取内容
+    else 
     {
-        if ((fp = fopen(av[1],"r")) != NULL)
-        {
-            do_more(fp);
-            fclose(fp);
+        while(--ac){
+            //* ++av 命令行第二个参数（文件名）
+            if ( (fp = fopen(* ++av, "r")) != NULL ){  //打开文件
+                do_more(fp);
+                fclose(fp);
+            } else {
+                exit(1);
+            }
         }
-        else
-            exit(1);
     }
-
     return 0;
-
+    
 }
 
-/*
- * 处理文件函数
- */
 void do_more(FILE *fp)
-{   
-
-    char data[LEN];
+{
+    //定义变量
+    char line[LINELEN];
     int num_of_lines = 0;
-    int see_more(),reply;
+    int see_more(FILE *),reply;
+    FILE *fp_tty;
+
+    // /dev/tty 是键盘和显示器的设备描述文件，向这个文件写相当于显示在用户的屏幕上,读相当于从键盘获取用户的输入
+    fp_tty = fopen("/dev/tty","r");
+
+    if (fp_tty == NULL)
+        exit(1);
 
     /*
      * 直到取不到值位置
      * 每次取一行，最多读取LEN-1字符
      */
-    while(fgets(data,LEN,fp) != NULL)
-    {   
+    while (fgets(line,LINELEN,fp)){
         
         //如果已经读取了 PAGELEN 行
         if (num_of_lines == PAGELEN){ //最多显示PAGELEN行
-            reply = see_more();
+            reply = see_more(fp_tty);
             
             if (reply == 0)
                 break;
             
+            
             num_of_lines -= reply;
         }
-
+        
         //通过标准输出流 输出
-        if (fputs(data,stdout) == EOF)
+        if (fputs(line,stdout) == EOF){
             exit(1);
-
+        }
         num_of_lines++;
     }
 }
 
-int see_more()
+int see_more(FILE *cmd)
 {
     int c;
     //白底黑字 \033[7m str \033[m
     printf("\033[7m more? \033[m");
-
-    while ((c = getchar()) != EOF)
+    while( (c = getc(cmd)) != EOF)
     {
-        switch (c)
-        {
-            case 'q':
-                return 0;
-                break;
-            case ' ':
-                return PAGELEN; //空格返回PAGELEN行
-                break;
-            case '\n':
-            default:
-                return 1;  //回车 只返回一行
-                break;
-        }
-    } 
-
+        if ( c == 'q')
+            return 0;
+        else if ( c == ' ')
+            return PAGELEN; //空格返回PAGELEN行
+        else if ( c == '\n' )  
+            return 1;  //回车 只返回一行
+    }
+    
     return 0;
+ 
+            
 }
+

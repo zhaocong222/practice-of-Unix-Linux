@@ -1,0 +1,1 @@
+fopen,fwrite,fread用法

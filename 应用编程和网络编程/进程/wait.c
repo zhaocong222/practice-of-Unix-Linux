@@ -24,7 +24,6 @@ int main(void)
         printf("子进程是否非正常终止：%d\n",WIFSIGNALED(status));
         printf("正常终止值是：%d\n",WEXITSTATUS(status)); // return exit _exit的值
 
-
     }
     else if(pid == 0)
     {

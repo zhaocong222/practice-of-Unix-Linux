@@ -5,19 +5,22 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-//阻塞式io的困境
-//同时读鼠标和键盘
+//非阻塞式io
+//同时读鼠标和键盘 
 /*
- *问题：代码是先read鼠标，/后read键盘 - 必须先晃动鼠标，再按键盘才有效果。
- *先按下键盘 没反应，因为read鼠标，一直处于阻塞当中。
- */
+    before 鼠标 read.
+    读出的内容是:[].
+    before 键盘 read.
+    读出的内容是:[].
+    效果不是我们想要的
+*/
 int main(void)
 {
     char buf[100];
     char buf2[100];
     //打开鼠标
     int fd = -1;
-    fd = open("/dev/input/mouse0",O_RDONLY);
+    fd = open("/dev/input/mouse0",O_RDONLY | O_NONBLOCK);
     if (fd<0)
     {
         perror("oppen");
@@ -30,6 +33,14 @@ int main(void)
     printf("读出的内容是:[%s].\n",buf);
 
     //读键盘
+    int flag = -1;
+    //把0号文件描述符(stdin)变成非阻塞
+    //通过fcntl可以改变已打开的文件性质
+    flag = fcntl(0,F_GETFL);//1.先获取原来的flag
+    flag |= O_NONBLOCK;     //2.添加非阻塞属性(利用位或)
+    fcntl(0,F_SETFL,flag);  //3.写入
+    //上面3步后，0就变成了非阻塞
+
     memset(buf2,0,sizeof(buf2));
     printf("before 键盘 read.\n");
     read(0,buf2,5);
